@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.db.models import Q
+from django.db.models import Q, F, Count,Avg, Max, Min, Sum
 
 from .models import *
 from django.db.models import Subquery
@@ -82,12 +82,46 @@ def vendeur(request):
     #permet d'afficher tous les vendeurs dont le nom commencent par O et recuperer seulement leur nom et leur prenom
     #vendeur = Vendeur.objects.filter( prenom__startswith='O').only("prenom", "nom")
     #============================================================================= 
-    vendeur = Vendeur.objects.all()
-    Produit.objects.filter(vendeur_id__in=Subquery(vendeur.values('id')))
+    #faire une expression de sous-requête dans Django
+    #vendeur = Vendeur.objects.all()
+    #Produit.objects.filter(vendeur_id__in=Subquery(vendeur.values('id')))
+    #=============================================================================
+    # requetes pour trouver deux valeurs identiques dans une table
+    #vendeur=Vendeur.objects.filter(nom=F("prenom"))
+    #=============================================================================  
+    # Requete qui permet de filtrer les filefield et imagefield   
+    #no_files_objects = MyModel.objects.filter(Q(file='')|Q(file=None))
+    #=============================================================================  
+    # Requete qui permet d'effectuer des selections entre deux tables    
+    #vendeur=Produit.objects.select_related('vendeur')
+    #=============================================================================  
+    #Requetes qui permet de voir les differents vendeur qui ont des noms doubles
+    #vendeur=Vendeur.objects.values('prenom').annotate(name_count=Count('prenom')).filter(name_count__gt=1)   
+    #print(vendeur)
+    #=============================================================================  
+    # This code is performing a query on the `Vendeur` model to retrieve all distinct values of the
+    # `prenom` field and annotate them with a count of how many times each value appears in the
+    # queryset. It then filters this queryset to only include values that appear once
+    # (`name_count=1`). Finally, it creates a new queryset by filtering the `Vendeur` model to only
+    # include instances where the `prenom` field is in the list of distinct `prenom` values that
+    # appear only once. This effectively retrieves all instances of `Vendeur` where the `prenom` value
+    # is unique. The resulting queryset is then passed to the `vendeur.html` template for rendering.
+    #vendeurs = Vendeur.objects.values('prenom').annotate(name_count=Count('prenom')).filter(name_count=1)
+    #vendeur = Vendeur.objects.filter(prenom__in=[item['prenom'] for item in vendeurs])
+    #============================================================================= 
+    #ces fonctions permettent de voir les moyennes des les decomptes et autres
+    # vendeur=Vendeur.objects.all().aggregate(Count('id'))
+    # vendeur=Vendeur.objects.all().aggregate(Avg('id'))
+    # vendeur=Vendeur.objects.all().aggregate(Min('id'))
+    # vendeur=Vendeur.objects.all().aggregate(Max('id'))
+    #============================================================================= 
+    #cette requete permet de généré aleatoirement des vendeurs
+    # def get_random():
+    #     return Vendeur.objects.order_by("?").first()
+    # print(get_random())
+    
     vendeur={
         'vendeur':vendeur,
     }
     return render(request, "vendeur.html", vendeur)
-
-
 
